@@ -4,93 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chinese Essay Grading System</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Fixed Library Link -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #2c3e50; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); }
-        #sidebar { width: 260px; background: var(--primary); color: white; display: flex; flex-direction: column; }
-        #sidebar h2 { padding: 15px; font-size: 1.1rem; border-bottom: 1px solid #34495e; margin:0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden;}
+        
+        #sidebar { width: 280px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
+        #sidebar h2 { padding: 15px; font-size: 1.1rem; border-bottom: 1px solid #34495e; margin:0; background: #1a252f;}
+        
         .essay-list { overflow-y: auto; flex-grow: 1; }
-        .essay-item { padding: 10px 20px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 14px; }
+        .essay-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 14px; transition: 0.2s; }
         .essay-item:hover { background: #34495e; }
-        .essay-item.active { background: #3498db; }
-        .essay-item.graded::after { content: " ✅"; float: right; }
+        .essay-item.active { background: #3498db; font-weight: bold; }
+        .essay-item.graded::after { content: " ✅"; float: right; color: #2ecc71; }
         
-        #main { flex-grow: 1; display: flex; overflow: hidden; }
-        #pdf-container { flex: 1; background: #525659; }
-        #pdf-viewer { width: 100%; height: 100%; border: none; }
+        #main { flex-grow: 1; display: flex; height: 100vh; }
+        #pdf-viewer { flex: 1; border: none; background: #525659; }
 
-        #rubric-panel { width: 380px; background: white; padding: 20px; overflow-y: auto; box-shadow: -2px 0 5px rgba(0,0,0,0.1); }
-        .section-title { background: #e8f4fd; padding: 8px; font-weight: bold; margin-top: 15px; border-left: 4px solid #3498db; }
-        .rubric-item { margin: 10px 0; font-size: 0.85rem; }
-        select, input[type="number"] { width: 100%; padding: 5px; margin-top: 3px; }
-        .total-score { font-size: 1.4rem; font-weight: bold; color: #e74c3c; margin: 20px 0; text-align: center; border: 2px solid #eee; padding: 10px; }
+        #rubric-panel { width: 400px; background: white; padding: 20px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+        .section-title { background: #f8f9fa; padding: 8px; font-weight: bold; margin-top: 15px; border-left: 4px solid #3498db; font-size: 0.9rem; }
+        .rubric-item { margin: 12px 0; font-size: 0.85rem; }
+        select, input[type="number"] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
         
-        button { width: 100%; padding: 10px; margin-top: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        .total-score-box { background: #fdf2f2; border: 2px solid #e74c3c; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center; }
+        .total-label { font-size: 0.8rem; color: #7f8c8d; text-transform: uppercase; }
+        #total-val { font-size: 2rem; font-weight: bold; color: #e74c3c; display: block; }
+        
+        button { width: 100%; padding: 12px; margin-top: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.3s; }
         .btn-save { background: #27ae60; color: white; }
+        .btn-save:hover { background: #219150; }
         .btn-export { background: #2980b9; color: white; }
-        .btn-view { background: #95a5a6; color: white; margin-bottom: 5px;}
+        .btn-view { background: #95a5a6; color: white; }
+        .btn-clear { background: #c0392b; color: white; font-size: 10px; padding: 5px; margin-top: 20px; opacity: 0.6; }
 
-        /* Modal for Summary */
-        #summary-modal { display:none; position:fixed; top:5%; left:5%; width:90%; height:90%; background:white; z-index:100; box-shadow:0 0 20px rgba(0,0,0,0.5); padding:20px; overflow:auto; border-radius:8px;}
-        table { width:100%; border-collapse: collapse; margin-top:20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #f2f2f2; }
+        /* Modal */
+        #summary-modal { display:none; position:fixed; top:5%; left:5%; width:90%; height:85%; background:white; z-index:1000; box-shadow:0 0 50px rgba(0,0,0,0.5); padding:20px; overflow:auto; border-radius:12px;}
+        table { width:100%; border-collapse: collapse; margin-top:20px; font-size: 0.9rem; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
+        th { background: #34495e; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>Essays (1-51)</h2>
+    <h2>Student Essays (1-51)</h2>
     <div class="essay-list" id="essayList"></div>
     <div style="padding: 15px; background: #1a252f;">
-        <button class="btn-view" onclick="toggleSummary()">View All Scores</button>
-        <button class="btn-export" onclick="exportData()">Download Excel</button>
+        <button class="btn-view" onclick="toggleSummary()">View Summary Table</button>
+        <button class="btn-export" onclick="exportData()">Download Excel File</button>
+        <button class="btn-clear" onclick="clearAllData()">Clear All Data (Reset)</button>
     </div>
 </div>
 
 <div id="main">
-    <iframe id="pdf-viewer" src=""></iframe>
+    <iframe id="pdf-viewer" src="about:blank"></iframe>
     <div id="rubric-panel">
-        <h3 id="current-title" style="margin-top:0">Select an Essay</h3>
+        <h3 id="current-title" style="margin-top:0; color:#2c3e50;">Select an essay to begin</h3>
+        
         <div id="rubric-form">
-            <div class="section-title">1. ACCURACY (30)</div>
-            <div class="rubric-item">Vocab: <select id="acc_vocab" onchange="calc()"><option value="10">0-1 errors (10)</option><option value="7">2-3 errors (7)</option><option value="5">4-5 errors (5)</option><option value="3">Unclear (3)</option><option value="1">Widespread (1)</option></select></div>
-            <div class="rubric-item">Grammar: <select id="acc_gram" onchange="calc()"><option value="10">0-1 errors (10)</option><option value="7">2-3 errors (7)</option><option value="5">4-5 errors (5)</option><option value="3">Affected (3)</option><option value="1">Major (1)</option></select></div>
-            <div class="rubric-item">Characters: <select id="acc_char" onchange="calc()"><option value="10">0-4 errors (10)</option><option value="7">5-10 errors (7)</option><option value="5">10-15 errors (5)</option><option value="3">Many (3)</option><option value="1">Very Many (1)</option></select></div>
+            <div class="section-title">1. ACCURACY (30 pts)</div>
+            <div class="rubric-item">Vocabulary Accuracy: <select id="acc_v" onchange="calc()"><option value="10">0-1 errors (10)</option><option value="7">2-3 errors (7)</option><option value="5">4-5 errors (5)</option><option value="3">Unclear (3)</option><option value="1">Widespread (1)</option></select></div>
+            <div class="rubric-item">Grammar Accuracy: <select id="acc_g" onchange="calc()"><option value="10">0-1 errors (10)</option><option value="7">2-3 errors (7)</option><option value="5">4-5 errors (5)</option><option value="3">Affected (3)</option><option value="1">Major errors (1)</option></select></div>
+            <div class="rubric-item">Character/Pinyin: <select id="acc_c" onchange="calc()"><option value="10">0-4 errors (10)</option><option value="7">5-10 errors (7)</option><option value="5">10-15 errors (5)</option><option value="3">Many errors (3)</option><option value="1">Very many (1)</option></select></div>
 
-            <div class="section-title">2. RANGE (30)</div>
-            <div class="rubric-item">Vocab Range: <select id="range_v" onchange="calc()"><option value="15">Exceeding (15)</option><option value="12">Many (12)</option><option value="9">Some (9)</option><option value="6">Few (6)</option><option value="3">Basic (3)</option></select></div>
-            <div class="rubric-item">Lang Points: <select id="range_l" onchange="calc()"><option value="15">7+ Beyond (15)</option><option value="12">7+ Used (12)</option><option value="9">5 Used (9)</option><option value="6">3 Used (6)</option><option value="3"><3 Used (3)</option></select></div>
+            <div class="section-title">2. RANGE (30 pts)</div>
+            <div class="rubric-item">Vocabulary Range: <select id="ran_v" onchange="calc()"><option value="15">Advanced (15)</option><option value="12">Many newly learned (12)</option><option value="9">Some new (9)</option><option value="6">Simple (6)</option><option value="3">Basic (3)</option></select></div>
+            <div class="rubric-item">Language Points: <select id="ran_l" onchange="calc()"><option value="15">7+ Beyond Level (15)</option><option value="12">7+ Correct (12)</option><option value="9">5 Correct (9)</option><option value="6">3 Correct (6)</option><option value="3">< 3 Correct (3)</option></select></div>
 
-            <div class="section-title">3. TOPIC & ORG (30)</div>
-            <div class="rubric-item">Relevance(5) <input type="number" id="o_rel" min="1" max="5" value="5" onchange="calc()"></div>
-            <div class="rubric-item">Detail(5) <input type="number" id="o_det" min="1" max="5" value="5" onchange="calc()"></div>
-            <div class="rubric-item">Length(5) <input type="number" id="o_len" min="1" max="5" value="5" onchange="calc()"></div>
-            <div class="rubric-item">Para(5) <input type="number" id="o_par" min="1" max="5" value="5" onchange="calc()"></div>
-            <div class="rubric-item">Order(5) <input type="number" id="o_ord" min="1" max="5" value="5" onchange="calc()"></div>
-            <div class="rubric-item">Cohesive(5) <input type="number" id="o_coh" min="1" max="5" value="5" onchange="calc()"></div>
-
-            <div class="section-title">4. FORMAT (10)</div>
-            <div class="rubric-item" id="format-group">
-                <input type="checkbox" class="f-chk" value="2" onchange="calc()"> Title Middle<br>
-                <input type="checkbox" class="f-chk" value="2" onchange="calc()"> Indentation<br>
-                <input type="checkbox" class="f-chk" value="2" onchange="calc()"> No Blank Lines<br>
-                <input type="checkbox" class="f-chk" value="2" onchange="calc()"> Narrative<br>
-                <input type="checkbox" class="f-chk" value="2" onchange="calc()"> Punctuation
+            <div class="section-title">3. TOPIC DEVELOPMENT (30 pts)</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="rubric-item">Relevance(5) <input type="number" id="o_rel" min="1" max="5" value="5" onchange="calc()"></div>
+                <div class="rubric-item">Detail(5) <input type="number" id="o_det" min="1" max="5" value="5" onchange="calc()"></div>
+                <div class="rubric-item">Length(5) <input type="number" id="o_len" min="1" max="5" value="5" onchange="calc()"></div>
+                <div class="rubric-item">Para(5) <input type="number" id="o_par" min="1" max="5" value="5" onchange="calc()"></div>
+                <div class="rubric-item">Order(5) <input type="number" id="o_ord" min="1" max="5" value="5" onchange="calc()"></div>
+                <div class="rubric-item">Cohesion(5) <input type="number" id="o_coh" min="1" max="5" value="5" onchange="calc()"></div>
             </div>
 
-            <div class="total-score">TOTAL SCORE: <span id="total-val">0</span>/100</div>
-            <button class="btn-save" onclick="saveGrade()">Save Grade</button>
+            <div class="section-title">4. FORMAT (10 pts)</div>
+            <div class="rubric-item">
+                <label><input type="checkbox" class="f-chk" value="2" onchange="calc()"> Title in middle</label><br>
+                <label><input type="checkbox" class="f-chk" value="2" onchange="calc()"> Indentation</label><br>
+                <label><input type="checkbox" class="f-chk" value="2" onchange="calc()"> No blank lines</label><br>
+                <label><input type="checkbox" class="f-chk" value="2" onchange="calc()"> Narrative format</label><br>
+                <label><input type="checkbox" class="f-chk" value="2" onchange="calc()"> Punctuation</label>
+            </div>
+
+            <div class="total-score-box">
+                <span class="total-label">Final Calculated Score</span>
+                <span id="total-val">0</span>
+            </div>
+            
+            <button class="btn-save" onclick="saveGrade()">Save Grade for Student</button>
         </div>
     </div>
 </div>
 
 <div id="summary-modal">
-    <button onclick="toggleSummary()" style="width:100px; background:red; color:white;">Close</button>
-    <h2>Grading Summary Table</h2>
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h2>Class Grading Summary</h2>
+        <button onclick="toggleSummary()" style="width:100px; background:#34495e; color:white;">Close</button>
+    </div>
     <table id="summary-table">
-        <thead><tr><th>Essay ID</th><th>Total Score</th><th>Accuracy</th><th>Range</th><th>Org</th><th>Format</th></tr></thead>
+        <thead>
+            <tr><th>Essay ID</th><th>Total</th><th>Accuracy (30)</th><th>Range (30)</th><th>Org (30)</th><th>Format (10)</th></tr>
+        </thead>
         <tbody id="summary-body"></tbody>
     </table>
 </div>
@@ -100,60 +120,65 @@
     let grades = JSON.parse(localStorage.getItem('essayGrades')) || {};
     let activeId = null;
 
-    // Build List
+    // Load Essay List
     const list = document.getElementById('essayList');
     for(let i=1; i<=51; i++) {
         let d = document.createElement('div');
         d.className = `essay-item ${grades[i] ? 'graded' : ''}`;
         d.id = `item-${i}`;
-        d.innerText = `Student Essay ${i}`;
-        d.onclick = () => load(i);
+        d.innerText = `Student Essay #${i}`;
+        d.onclick = () => loadEssay(i);
         list.appendChild(d);
     }
 
-    function load(id) {
+    function loadEssay(id) {
         activeId = id;
         document.querySelectorAll('.essay-item').forEach(e => e.classList.remove('active'));
         document.getElementById(`item-${id}`).classList.add('active');
-        document.getElementById('current-title').innerText = `Grading Essay #${id}`;
+        document.getElementById('current-title').innerText = `Grading Essay Student #${id}`;
         document.getElementById('pdf-viewer').src = `${GITHUB_BASE}${id}.pdf`;
 
+        // Reset or Load Saved Data
         if(grades[id]) {
             const g = grades[id];
-            document.getElementById('acc_vocab').value = g.v;
-            document.getElementById('acc_gram').value = g.g;
-            document.getElementById('acc_char').value = g.c;
-            document.getElementById('range_v').value = g.rv;
-            document.getElementById('range_l').value = g.rl;
-            document.getElementById('o_rel').value = g.or;
-            document.getElementById('o_det').value = g.od;
-            document.getElementById('o_len').value = g.ole;
-            document.getElementById('o_par').value = g.op;
-            document.getElementById('o_ord').value = g.oo;
-            document.getElementById('o_coh').value = g.oc;
+            document.getElementById('acc_v').value = g.v || 10;
+            document.getElementById('acc_g').value = g.g || 10;
+            document.getElementById('acc_c').value = g.c || 10;
+            document.getElementById('ran_v').value = g.rv || 15;
+            document.getElementById('ran_l').value = g.rl || 15;
+            document.getElementById('o_rel').value = g.or || 5;
+            document.getElementById('o_det').value = g.od || 5;
+            document.getElementById('o_len').value = g.ole || 5;
+            document.getElementById('o_par').value = g.op || 5;
+            document.getElementById('o_ord').value = g.oo || 5;
+            document.getElementById('o_coh').value = g.oc || 5;
             const chks = document.querySelectorAll('.f-chk');
-            chks.forEach((c, i) => c.checked = g.f[i]);
+            chks.forEach((c, idx) => c.checked = (g.f && g.f[idx]) ? true : false);
         }
         calc();
     }
 
     function calc() {
         let sum = 0;
-        ['acc_vocab','acc_gram','acc_char','range_v','range_l','o_rel','o_det','o_len','o_par','o_ord', 'o_coh']
-        .forEach(id => sum += parseInt(document.getElementById(id).value || 0));
+        const ids = ['acc_v','acc_g','acc_c','ran_v','ran_l','o_rel','o_det','o_len','o_par','o_ord', 'o_coh'];
+        ids.forEach(id => {
+            const val = parseInt(document.getElementById(id).value);
+            sum += isNaN(val) ? 0 : val;
+        });
         document.querySelectorAll('.f-chk:checked').forEach(() => sum += 2);
         document.getElementById('total-val').innerText = sum;
         return sum;
     }
 
     function saveGrade() {
-        if(!activeId) return alert("Select an essay!");
+        if(!activeId) { alert("Please select a student from the list first."); return; }
+        
         grades[activeId] = {
-            v: document.getElementById('acc_vocab').value,
-            g: document.getElementById('acc_gram').value,
-            c: document.getElementById('acc_char').value,
-            rv: document.getElementById('range_v').value,
-            rl: document.getElementById('range_l').value,
+            v: document.getElementById('acc_v').value,
+            g: document.getElementById('acc_g').value,
+            c: document.getElementById('acc_c').value,
+            rv: document.getElementById('ran_v').value,
+            rl: document.getElementById('ran_l').value,
             or: document.getElementById('o_rel').value,
             od: document.getElementById('o_det').value,
             ole: document.getElementById('o_len').value,
@@ -163,28 +188,63 @@
             f: Array.from(document.querySelectorAll('.f-chk')).map(c => c.checked),
             total: calc()
         };
+        
         localStorage.setItem('essayGrades', JSON.stringify(grades));
         document.getElementById(`item-${activeId}`).classList.add('graded');
-        alert("Saved successfully!");
+        alert("Grade saved successfully!");
     }
 
     function toggleSummary() {
         const modal = document.getElementById('summary-modal');
         const body = document.getElementById('summary-body');
         body.innerHTML = "";
+        
         Object.keys(grades).sort((a,b)=>a-b).forEach(id => {
             const g = grades[id];
-            body.innerHTML += `<tr><td>${id}</td><td><b>${g.total}</b></td><td>${parseInt(g.v)+parseInt(g.g)+parseInt(g.c)}</td><td>${parseInt(g.rv)+parseInt(g.rl)}</td><td>${parseInt(g.or)+parseInt(g.od)+parseInt(g.ole)+parseInt(g.op)+parseInt(g.oo)+parseInt(g.oc)}</td><td>${g.f.filter(x=>x).length*2}</td></tr>`;
+            const acc = (parseInt(g.v)||0)+(parseInt(g.g)||0)+(parseInt(g.c)||0);
+            const ran = (parseInt(g.rv)||0)+(parseInt(g.rl)||0);
+            const org = (parseInt(g.or)||0)+(parseInt(g.od)||0)+(parseInt(g.ole)||0)+(parseInt(g.op)||0)+(parseInt(g.oo)||0)+(parseInt(g.oc)||0);
+            const fmt = g.f ? g.f.filter(x=>x).length*2 : 0;
+            
+            body.innerHTML += `<tr><td>Student ${id}</td><td><b>${g.total}</b></td><td>${acc}</td><td>${ran}</td><td>${org}</td><td>${fmt}</td></tr>`;
         });
         modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
     }
 
     function exportData() {
-        const data = Object.keys(grades).map(id => ({ EssayID: id, FinalScore: grades[id].total }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Scores");
-        XLSX.writeFile(wb, "Class_Scores.xlsx");
+        try {
+            if (Object.keys(grades).length === 0) {
+                alert("No grades have been saved yet!");
+                return;
+            }
+
+            const data = Object.keys(grades).sort((a,b)=>a-b).map(id => {
+                const g = grades[id];
+                return {
+                    "Student ID": id,
+                    "Total Score": g.total,
+                    "Accuracy": (parseInt(g.v)||0)+(parseInt(g.g)||0)+(parseInt(g.c)||0),
+                    "Range": (parseInt(g.rv)||0)+(parseInt(g.rl)||0),
+                    "Topic & Org": (parseInt(g.or)||0)+(parseInt(g.od)||0)+(parseInt(g.ole)||0)+(parseInt(g.op)||0)+(parseInt(g.oo)||0)+(parseInt(g.oc)||0),
+                    "Format": g.f ? g.f.filter(x=>x).length*2 : 0
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Chinese Essay Grades");
+            XLSX.writeFile(wb, "Student_Grades_Summary.xlsx");
+        } catch (err) {
+            console.error(err);
+            alert("Error generating Excel file. Check console for details.");
+        }
+    }
+
+    function clearAllData() {
+        if(confirm("Are you sure you want to delete ALL saved scores? This cannot be undone.")) {
+            localStorage.removeItem('essayGrades');
+            location.reload();
+        }
     }
 </script>
 </body>
