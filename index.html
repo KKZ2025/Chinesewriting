@@ -3,317 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Writing Rubric - Grading Dashboard</title>
-    <!-- Excel Export Library -->
+    <title>Chinese Writing Pro Dashboard</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f0f2f5; --selected: #e7f3ff; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
         
-        /* Sidebar Styles */
-        #sidebar { width: 300px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
-        #sidebar h2 { padding: 20px; font-size: 1.2rem; margin: 0; background: #1a252f; border-bottom: 1px solid #34495e; }
+        /* Sidebar */
+        #sidebar { width: 280px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
+        #sidebar h2 { padding: 20px; font-size: 1.1rem; margin: 0; background: #1a252f; border-bottom: 1px solid #34495e; }
         .essay-list { overflow-y: auto; flex-grow: 1; }
-        .essay-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 14px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .essay-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 14px; transition: 0.2s; display: flex; justify-content: space-between; }
         .essay-item:hover { background: #34495e; }
         .essay-item.active { background: var(--accent); font-weight: bold; }
-        .essay-item.graded::after { content: "✅"; color: #2ecc71; font-weight: bold; }
+        .essay-item.graded::after { content: "✅"; color: #2ecc71; }
 
-        /* PDF Viewer and Rubric Split */
+        /* Main Workspace */
         #main { flex-grow: 1; display: flex; }
         #pdf-viewer { flex: 1; border: none; background: #525659; }
 
-        /* Rubric Panel Styles */
-        #rubric-panel { width: 480px; background: white; padding: 25px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
-        .section-header { background: #ebf5fb; color: #2980b9; padding: 10px 15px; font-weight: bold; margin-top: 20px; border-left: 5px solid var(--accent); font-size: 0.9rem; border-radius: 0 4px 4px 0; }
-        .rubric-item { margin: 15px 0; font-size: 0.85rem; }
-        .rubric-item label { font-weight: 600; display: block; margin-bottom: 5px; color: #34495e; }
-        select, input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; background: #fff; }
-        
-        .total-box { background: #fdf2f2; border: 2px solid #e74c3c; border-radius: 8px; padding: 15px; margin: 25px 0; text-align: center; }
-        .total-label { color: #7f8c8d; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; }
-        #total-val { font-size: 2.5rem; font-weight: bold; color: #e74c3c; display: block; }
+        /* Rubric Grid Panel */
+        #rubric-panel { width: 600px; background: white; padding: 20px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+        .timer-header { display: flex; justify-content: space-between; align-items: center; background: #34495e; color: white; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; }
+        #stopwatch { font-family: monospace; font-size: 1.2rem; font-weight: bold; }
 
-        /* Buttons */
-        button { width: 100%; padding: 14px; margin-top: 10px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
-        .btn-save { background: #27ae60; color: white; font-size: 1rem; box-shadow: 0 4px 0 #219150; }
-        .btn-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #219150; }
-        .btn-export { background: var(--accent); color: white; }
-        .btn-clear { background: #95a5a6; color: white; font-size: 0.7rem; margin-top: 30px; opacity: 0.7; }
-        .btn-clear:hover { opacity: 1; background: #c0392b; }
+        /* Rubric Design */
+        .rubric-section { margin-bottom: 25px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        .section-title { background: #f8f9fa; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; color: #2c3e50; }
         
-        label.chk-container { display: flex; align-items: center; font-weight: normal; cursor: pointer; padding: 4px 0; }
-        label.chk-container input { margin-right: 10px; transform: scale(1.2); }
+        .rubric-row { display: flex; border-bottom: 1px solid #f0f0f0; }
+        .row-label { width: 120px; padding: 10px; font-size: 0.8rem; font-weight: bold; background: #fafafa; border-right: 1px solid #eee; display: flex; align-items: center; }
+        .cell-container { flex: 1; display: flex; }
+        .level-cell { flex: 1; padding: 8px; font-size: 0.75rem; text-align: center; cursor: pointer; border-right: 1px solid #f0f0f0; transition: 0.2s; display: flex; flex-direction: column; justify-content: center; }
+        .level-cell:last-child { border-right: none; }
+        .level-cell:hover { background: #f0f7ff; }
+        .level-cell.selected { background: var(--selected); border: 2px solid var(--accent); font-weight: bold; color: var(--accent); }
+        .pts { display: block; font-weight: bold; margin-top: 4px; color: #666; }
+        .selected .pts { color: var(--accent); }
+
+        /* Format Checkboxes */
+        .format-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 15px; }
+        .format-item { display: flex; align-items: center; font-size: 0.85rem; cursor: pointer; }
+        .format-item input { margin-right: 10px; }
+
+        .total-box { background: #fff5f5; border: 2px solid #e74c3c; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center; }
+        #total-val { font-size: 2.5rem; font-weight: bold; color: #e74c3c; }
+
+        button { width: 100%; padding: 14px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px; }
+        .btn-save { background: #27ae60; color: white; font-size: 1rem; box-shadow: 0 4px 0 #219150; }
+        .btn-export { background: var(--accent); color: white; margin-top: 30px; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>Student Essays (1-51)</h2>
+    <h2>Student Essays</h2>
     <div class="essay-list" id="essayList"></div>
     <div style="padding: 15px; background: #1a252f;">
-        <button class="btn-export" onclick="exportExcel()">Download Detailed Excel</button>
-        <button class="btn-clear" onclick="clearData()">Clear All Stored Scores</button>
+        <button class="btn-export" onclick="exportExcel()">Download Final Excel</button>
     </div>
 </div>
 
 <div id="main">
     <iframe id="pdf-viewer" src="about:blank"></iframe>
     <div id="rubric-panel">
-        <h2 id="essay-title" style="margin-top:0; color:var(--primary);">Select a student essay</h2>
-        
-        <!-- 1. ACCURACY (30 pts) -->
-        <div class="section-header">1. ACCURACY (30 pts)</div>
-        <div class="rubric-item">
-            <label>Vocabulary Accuracy (10)</label>
-            <select id="acc_v" onchange="updateTotal()">
-                <option value="10">0–1 vocabulary errors (10)</option>
-                <option value="7">2–3 vocabulary errors (7)</option>
-                <option value="5">4–5 vocabulary errors (5)</option>
-                <option value="3">Frequent errors; meaning sometimes unclear (3)</option>
-                <option value="1">Widespread errors; meaning often unclear (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Grammar Accuracy (10)</label>
-            <select id="acc_g" onchange="updateTotal()">
-                <option value="10">0–1 grammar errors (10)</option>
-                <option value="7">2–3 grammar errors (7)</option>
-                <option value="5">4–5 grammar errors (5)</option>
-                <option value="3">Frequent grammar errors; clarity affected (3)</option>
-                <option value="1">Persistent major errors; meaning unclear (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Character Accuracy (10)</label>
-            <select id="acc_c" onchange="updateTotal()">
-                <option value="10">0–4 wrong characters/pinyin (10)</option>
-                <option value="7">5–10 wrong characters/pinyin (7)</option>
-                <option value="5">10–15 wrong characters/pinyin (5)</option>
-                <option value="3">Many errors; regular Pinyin use (3)</option>
-                <option value="1">Very many errors; heavy Pinyin use (1)</option>
-            </select>
+        <div class="timer-header">
+            <span>TIMER: <span id="stopwatch">00:00</span></span>
+            <span id="essay-label" style="font-size:0.8rem; opacity:0.8;">Select Essay</span>
         </div>
 
-        <!-- 2. RANGE (30 pts) -->
-        <div class="section-header">2. RANGE (30 pts)</div>
-        <div class="rubric-item">
-            <label>Vocabulary Range (15)</label>
-            <select id="ran_v" onchange="updateTotal()">
-                <option value="15">Many newly learned + some exceeding level (15)</option>
-                <option value="12">Many newly learned vocabulary items used (12)</option>
-                <option value="9">Some vocabulary newly learned used (9)</option>
-                <option value="6">Only a few newly learned; very simple (6)</option>
-                <option value="3">Vocabulary almost entirely basic (3)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Language Point Range (15)</label>
-            <select id="ran_l" onchange="updateTotal()">
-                <option value="15">7+ points, 1–2 beyond level (15)</option>
-                <option value="12">7+ language points (12)</option>
-                <option value="9">5 language points (9)</option>
-                <option value="6">3 language points (6)</option>
-                <option value="3">Fewer than 3 language points (3)</option>
-            </select>
-        </div>
-
-        <!-- 3. TOPIC DEVELOPMENT & ORGANISATION (30 pts) -->
-        <div class="section-header">3. TOPIC DEVELOPMENT & ORGANISATION (30 pts)</div>
-        <div class="rubric-item">
-            <label>Relevance (5)</label>
-            <select id="t_rel" onchange="updateTotal()">
-                <option value="5">Fully relevant to the task (5)</option>
-                <option value="4">Mostly relevant to the task (4)</option>
-                <option value="3">Generally relevant to the task (3)</option>
-                <option value="2">Partly relevant to the task (2)</option>
-                <option value="1">Limited relevance to the task (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Detail (5)</label>
-            <select id="t_det" onchange="updateTotal()">
-                <option value="5">Elaborated detail with depth (5)</option>
-                <option value="4">Sufficient detail (4)</option>
-                <option value="3">Some detail (3)</option>
-                <option value="2">Minimal detail (2)</option>
-                <option value="1">Details lacking (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Length (5)</label>
-            <select id="t_len" onchange="updateTotal()">
-                <option value="5">Length more than 2 pages (5)</option>
-                <option value="3">Length more than 1 page (3)</option>
-                <option value="1">Length less than 1 page (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Paragraphing (5)</label>
-            <select id="t_par" onchange="updateTotal()">
-                <option value="5">Clear and balanced paragraphing (5)</option>
-                <option value="4">Clear paragraphing with minor imbalance (4)</option>
-                <option value="3">Paragraphing present but uneven (3)</option>
-                <option value="2">Paragraphing unclear or weak (2)</option>
-                <option value="1">Paragraphing insufficient/absent (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Logical Order (5)</label>
-            <select id="t_ord" onchange="updateTotal()">
-                <option value="5">Fully logical with smooth flow (5)</option>
-                <option value="4">Mostly logical sequence (4)</option>
-                <option value="3">Generally logical with lapses (3)</option>
-                <option value="2">Sequence sometimes confusing (2)</option>
-                <option value="1">Often illogical or disconnected (1)</option>
-            </select>
-        </div>
-        <div class="rubric-item">
-            <label>Cohesive Devices (5)</label>
-            <select id="t_coh" onchange="updateTotal()">
-                <option value="5">3+ used effectively (5)</option>
-                <option value="4">2 used appropriately (4)</option>
-                <option value="3">1 used appropriately (3)</option>
-                <option value="2">Minimal cohesive devices (2)</option>
-                <option value="1">Few or no cohesive devices (1)</option>
-            </select>
+        <!-- 1. ACCURACY -->
+        <div class="rubric-section">
+            <div class="section-title">1. ACCURACY (30) <span id="sum-acc">0</span></div>
+            <div class="rubric-row" data-id="acc_v">
+                <div class="row-label">Vocabulary</div>
+                <div class="cell-container">
+                    <div class="level-cell" onclick="setScore('acc_v', 10)">0–1 errors <span class="pts">10</span></div>
+                    <div class="level-cell" onclick="setScore('acc_v', 7)">2–3 errors <span class="pts">7</span></div>
+                    <div class="level-cell" onclick="setScore('acc_v', 5)">4–5 errors <span class="pts">5</span></div>
+                    <div class="level-cell" onclick="setScore('acc_v', 3)">Frequent <span class="pts">3</span></div>
+                    <div class="level-cell" onclick="setScore('acc_v', 1)">Widespread <span class="pts">1</span></div>
+                </div>
+            </div>
+            <div class="rubric-row" data-id="acc_g">
+                <div class="row-label">Grammar</div>
+                <div class="cell-container">
+                    <div class="level-cell" onclick="setScore('acc_g', 10)">0–1 errors <span class="pts">10</span></div>
+                    <div class="level-cell" onclick="setScore('acc_g', 7)">2–3 errors <span class="pts">7</span></div>
+                    <div class="level-cell" onclick="setScore('acc_g', 5)">4–5 errors <span class="pts">5</span></div>
+                    <div class="level-cell" onclick="setScore('acc_g', 3)">Frequent <span class="pts">3</span></div>
+                    <div class="level-cell" onclick="setScore('acc_g', 1)">Persistent <span class="pts">1</span></div>
+                </div>
+            </div>
+            <div class="rubric-row" data-id="acc_c">
+                <div class="row-label">Character</div>
+                <div class="cell-container">
+                    <div class="level-cell" onclick="setScore('acc_c', 10)">0–4 wrong <span class="pts">10</span></div>
+                    <div class="level-cell" onclick="setScore('acc_c', 7)">5–10 wrong <span class="pts">7</span></div>
+                    <div class="level-cell" onclick="setScore('acc_c', 5)">10–15 wrong <span class="pts">5</span></div>
+                    <div class="level-cell" onclick="setScore('acc_c', 3)">Many <span class="pts">3</span></div>
+                    <div class="level-cell" onclick="setScore('acc_c', 1)">Very many <span class="pts">1</span></div>
+                </div>
+            </div>
         </div>
 
-        <!-- 4. FORMAT (10 pts) -->
-        <div class="section-header">4. FORMAT REQUIREMENTS (10 pts)</div>
-        <div class="rubric-item" id="format-checks">
-            <label class="chk-container"><input type="checkbox" class="f-chk" value="2" onchange="updateTotal()"> Title in the middle (2)</label>
-            <label class="chk-container"><input type="checkbox" class="f-chk" value="2" onchange="updateTotal()"> Paragraph indentation (2)</label>
-            <label class="chk-container"><input type="checkbox" class="f-chk" value="2" onchange="updateTotal()"> No blank lines (2)</label>
-            <label class="chk-container"><input type="checkbox" class="f-chk" value="2" onchange="updateTotal()"> Narrative format (2)</label>
-            <label class="chk-container"><input type="checkbox" class="f-chk" value="2" onchange="updateTotal()"> Punctuation marks (2)</label>
+        <!-- 2. RANGE -->
+        <div class="rubric-section">
+            <div class="section-title">2. RANGE (30) <span id="sum-ran">0</span></div>
+            <div class="rubric-row" data-id="ran_v">
+                <div class="row-label">Vocab Range</div>
+                <div class="cell-container">
+                    <div class="level-cell" onclick="setScore('ran_v', 15)">Many + Exceeding <span class="pts">15</span></div>
+                    <div class="level-cell" onclick="setScore('ran_v', 12)">Many newly <span class="pts">12</span></div>
+                    <div class="level-cell" onclick="setScore('ran_v', 9)">Some newly <span class="pts">9</span></div>
+                    <div class="level-cell" onclick="setScore('ran_v', 6)">A few simple <span class="pts">6</span></div>
+                    <div class="level-cell" onclick="setScore('ran_v', 3)">Basic <span class="pts">3</span></div>
+                    <div class="level-cell" onclick="setScore('ran_v', 5)">Default <span class="pts">5</span></div>
+                </div>
+            </div>
+            <div class="rubric-row" data-id="ran_l">
+                <div class="row-label">Lang Points</div>
+                <div class="cell-container">
+                    <div class="level-cell" onclick="setScore('ran_l', 15)">7+ Beyond <span class="pts">15</span></div>
+                    <div class="level-cell" onclick="setScore('ran_l', 12)">7+ Used <span class="pts">12</span></div>
+                    <div class="level-cell" onclick="setScore('ran_l', 9)">5 Used <span class="pts">9</span></div>
+                    <div class="level-cell" onclick="setScore('ran_l', 6)">3 Used <span class="pts">6</span></div>
+                    <div class="level-cell" onclick="setScore('ran_l', 3)"> < 3 used <span class="pts">3</span></div>
+                    <div class="level-cell" onclick="setScore('ran_l', 5)">Default <span class="pts">5</span></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Total Calculation -->
+        <!-- 3. TOPIC & ORG -->
+        <div class="rubric-section">
+            <div class="section-title">3. TOPIC & ORG (30) <span id="sum-top">0</span></div>
+            <!-- Dynamic rows generated via loop for efficiency -->
+            <div id="topic-rows"></div>
+        </div>
+
+        <!-- 4. FORMAT -->
+        <div class="rubric-section">
+            <div class="section-title">4. FORMAT (10) <span id="sum-fmt">0</span></div>
+            <div class="format-grid">
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateTotal()"> Title middle</label>
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateTotal()"> Indentation</label>
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateTotal()"> No blank lines</label>
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateTotal()"> Narrative format</label>
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateTotal()"> Punctuation</label>
+            </div>
+        </div>
+
         <div class="total-box">
-            <span class="total-label">FINAL SCORE</span>
-            <span id="total-val">0</span>
+            <div style="font-weight: bold; color: #7f8c8d;">FINAL SCORE</div>
+            <div id="total-val">0</div>
         </div>
         
-        <button class="btn-save" onclick="saveGrade()">Save Grade for Student</button>
+        <button class="btn-save" onclick="saveGrade()">Save Grade & Time</button>
     </div>
 </div>
 
 <script>
-    const GITHUB_PDF_PATH = "https://kkz2025.github.io/Chinesewriting/students%20essays/";
-    // Unique key for storage to avoid conflicts with older versions
-    const DB_KEY = 'chineseGrades_Final_v1';
-    let allGrades = JSON.parse(localStorage.getItem(DB_KEY)) || {};
-    let currentId = null;
+    const GITHUB_PATH = "https://kkz2025.github.io/Chinesewriting/students%20essays/";
+    const DB_KEY = 'chineseGrades_Rubric_v5';
+    let grades = JSON.parse(localStorage.getItem(DB_KEY)) || {};
+    let activeId = null;
+    let seconds = 0;
+    let interval;
 
-    // Load Essay List in Sidebar
-    const listContainer = document.getElementById('essayList');
+    // Current selection data
+    let currentScores = {
+        acc_v: 5, acc_g: 5, acc_c: 5,
+        ran_v: 5, ran_l: 5,
+        t_rel: 3, t_det: 3, t_len: 5, t_par: 3, t_ord: 3, t_coh: 3
+    };
+
+    // Build Topic Rows
+    const topicFields = [
+        {id:'t_rel', label:'Relevance'}, {id:'t_det', label:'Detail'}, {id:'t_len', label:'Length'},
+        {id:'t_par', label:'Paragraph'}, {id:'t_ord', label:'Order'}, {id:'t_coh', label:'Cohesion'}
+    ];
+    const topContainer = document.getElementById('topic-rows');
+    topicFields.forEach(f => {
+        let row = document.createElement('div');
+        row.className = 'rubric-row';
+        row.dataset.id = f.id;
+        row.innerHTML = `<div class="row-label">${f.label}</div><div class="cell-container">` +
+            [5,4,3,2,1].map(v => `<div class="level-cell" onclick="setScore('${f.id}', ${v})">${v} Pts</div>`).join('') +
+            `</div>`;
+        topContainer.appendChild(row);
+    });
+
+    // Build Student List
+    const list = document.getElementById('essayList');
     for(let i=1; i<=51; i++) {
-        const item = document.createElement('div');
-        item.className = `essay-item ${allGrades[i] ? 'graded' : ''}`;
-        item.id = `essay-${i}`;
-        item.innerHTML = `<span>Student Essay #${i}</span>`;
-        item.onclick = () => loadEssay(i);
-        listContainer.appendChild(item);
+        let div = document.createElement('div');
+        div.className = `essay-item ${grades[i] ? 'graded' : ''}`;
+        div.id = `essay-${i}`;
+        div.innerHTML = `<span>Student #${i}</span>`;
+        div.onclick = () => loadEssay(i);
+        list.appendChild(div);
     }
+
+    function setScore(id, pts) {
+        currentScores[id] = pts;
+        updateUI();
+    }
+
+    function updateUI() {
+        // Highlight cells
+        document.querySelectorAll('.rubric-row').forEach(row => {
+            const id = row.dataset.id;
+            const targetScore = currentScores[id];
+            row.querySelectorAll('.level-cell').forEach(cell => {
+                const cellVal = parseInt(cell.innerText);
+                cell.classList.toggle('selected', cellVal === targetScore);
+            });
+        });
+
+        const acc = currentScores.acc_v + currentScores.acc_g + currentScores.acc_c;
+        const ran = currentScores.ran_v + currentScores.ran_l;
+        const top = currentScores.t_rel + currentScores.t_det + currentScores.t_len + currentScores.t_par + currentScores.t_ord + currentScores.t_coh;
+        const fmt = Array.from(document.querySelectorAll('.f-chk:checked')).length * 2;
+
+        document.getElementById('sum-acc').innerText = acc;
+        document.getElementById('sum-ran').innerText = ran;
+        document.getElementById('sum-top').innerText = top;
+        document.getElementById('sum-fmt').innerText = fmt;
+        document.getElementById('total-val').innerText = acc + ran + top + fmt;
+    }
+
+    function updateTotal() { updateUI(); }
 
     function loadEssay(id) {
-        currentId = id;
-        document.querySelectorAll('.essay-item').forEach(el => el.classList.remove('active'));
+        activeId = id;
+        document.querySelectorAll('.essay-item').forEach(e => e.classList.remove('active'));
         document.getElementById(`essay-${id}`).classList.add('active');
-        document.getElementById('essay-title').innerText = `Grading Essay #${id}`;
-        document.getElementById('pdf-viewer').src = `${GITHUB_PDF_PATH}${id}.pdf`;
+        document.getElementById('essay-label').innerText = `Essay Student #${id}`;
+        document.getElementById('pdf-viewer').src = `${GITHUB_PATH}${id}.pdf`;
+        
+        // Start Timer
+        clearInterval(interval);
+        seconds = 0;
+        interval = setInterval(() => {
+            seconds++;
+            const m = Math.floor(seconds/60).toString().padStart(2,'0');
+            const s = (seconds%60).toString().padStart(2,'0');
+            document.getElementById('stopwatch').innerText = `${m}:${s}`;
+        }, 1000);
 
-        if(allGrades[id]) {
-            const g = allGrades[id];
-            document.getElementById('acc_v').value = g.acc_v;
-            document.getElementById('acc_g').value = g.acc_g;
-            document.getElementById('acc_c').value = g.acc_c;
-            document.getElementById('ran_v').value = g.ran_v;
-            document.getElementById('ran_l').value = g.ran_l;
-            document.getElementById('t_rel').value = g.t_rel;
-            document.getElementById('t_det').value = g.t_det;
-            document.getElementById('t_len').value = g.t_len;
-            document.getElementById('t_par').value = g.t_par;
-            document.getElementById('t_ord').value = g.t_ord;
-            document.getElementById('t_coh').value = g.t_coh;
-            const checks = document.querySelectorAll('.f-chk');
-            checks.forEach((c, idx) => c.checked = g.format_checklist[idx]);
+        if(grades[id]) {
+            currentScores = {...grades[id].scores};
+            const chks = document.querySelectorAll('.f-chk');
+            chks.forEach((c, idx) => c.checked = grades[id].format[idx]);
+        } else {
+            // Restore Defaults
+            currentScores = { acc_v: 5, acc_g: 5, acc_c: 5, ran_v: 5, ran_l: 5, t_rel: 3, t_det: 3, t_len: 5, t_par: 3, t_ord: 3, t_coh: 3 };
+            document.querySelectorAll('.f-chk').forEach(c => c.checked = true);
         }
-        updateTotal();
-    }
-
-    function updateTotal() {
-        let total = 0;
-        const keys = ['acc_v','acc_g','acc_c','ran_v','ran_l','t_rel','t_det','t_len','t_par','t_ord','t_coh'];
-        keys.forEach(id => total += parseInt(document.getElementById(id).value || 0));
-        document.querySelectorAll('.f-chk:checked').forEach(() => total += 2);
-        document.getElementById('total-val').innerText = total;
-        return total;
+        updateUI();
     }
 
     function saveGrade() {
-        if(!currentId) return alert("Select an essay from the list first!");
-        
-        allGrades[currentId] = {
-            acc_v: document.getElementById('acc_v').value,
-            acc_g: document.getElementById('acc_g').value,
-            acc_c: document.getElementById('acc_c').value,
-            ran_v: document.getElementById('ran_v').value,
-            ran_l: document.getElementById('ran_l').value,
-            t_rel: document.getElementById('t_rel').value,
-            t_det: document.getElementById('t_det').value,
-            t_len: document.getElementById('t_len').value,
-            t_par: document.getElementById('t_par').value,
-            t_ord: document.getElementById('t_ord').value,
-            t_coh: document.getElementById('t_coh').value,
-            format_checklist: Array.from(document.querySelectorAll('.f-chk')).map(c => c.checked),
-            total_score: updateTotal()
+        if(!activeId) return alert("Select an essay!");
+        grades[activeId] = {
+            scores: {...currentScores},
+            format: Array.from(document.querySelectorAll('.f-chk')).map(c => c.checked),
+            time: seconds,
+            total: parseInt(document.getElementById('total-val').innerText)
         };
-        
-        localStorage.setItem(DB_KEY, JSON.stringify(allGrades));
-        document.getElementById(`essay-${currentId}`).classList.add('graded');
-        alert("Scores saved for Student #" + currentId);
+        localStorage.setItem(DB_KEY, JSON.stringify(grades));
+        document.getElementById(`essay-${activeId}`).classList.add('graded');
+        alert("Saved!");
     }
 
     function exportExcel() {
-        if(Object.keys(allGrades).length === 0) return alert("No grades found. Please save at least one essay score.");
+        if(Object.keys(grades).length === 0) return alert("No grades!");
         
-        const dataRows = Object.keys(allGrades).sort((a,b)=>a-b).map(id => {
-            const g = allGrades[id];
+        const rows = Object.keys(grades).sort((a,b)=>a-b).map(id => {
+            const g = grades[id];
+            const s = g.scores;
+            const accT = s.acc_v + s.acc_g + s.acc_c;
+            const ranT = s.ran_v + s.ran_l;
+            const topT = s.t_rel + s.t_det + s.t_len + s.t_par + s.t_ord + s.t_coh;
+            const fmtT = g.format.filter(x=>x).length * 2;
+
             return {
-                "Essay ID": "Student " + id,
-                "FINAL SCORE": g.total_score,
-                "ACC: Vocabulary (10)": g.acc_v,
-                "ACC: Grammar (10)": g.acc_g,
-                "ACC: Characters (10)": g.acc_c,
-                "RAN: Vocabulary (15)": g.ran_v,
-                "RAN: Language Points (15)": g.ran_l,
-                "ORG: Relevance (5)": g.t_rel,
-                "ORG: Detail (5)": g.t_det,
-                "ORG: Length (5)": g.t_len,
-                "ORG: Paragraphing (5)": g.t_par,
-                "ORG: Logical Order (5)": g.t_ord,
-                "ORG: Cohesive Devices (5)": g.t_coh,
-                "FMT: Title Middle (2)": g.format_checklist[0] ? 2 : 0,
-                "FMT: Indentation (2)": g.format_checklist[1] ? 2 : 0,
-                "FMT: No Blank Lines (2)": g.format_checklist[2] ? 2 : 0,
-                "FMT: Narrative (2)": g.format_checklist[3] ? 2 : 0,
-                "FMT: Punctuation (2)": g.format_checklist[4] ? 2 : 0
+                "Student ID": id,
+                "TOTAL SCORE": g.total,
+                "Accuracy TOTAL": accT,
+                "Range TOTAL": ranT,
+                "Topic TOTAL": topT,
+                "Format TOTAL": fmtT,
+                "Time (Mins)": (g.time / 60).toFixed(2),
+                "Acc: Vocab": s.acc_v, "Acc: Gram": s.acc_g, "Acc: Char": s.acc_c,
+                "Ran: Vocab": s.ran_v, "Ran: Lang": s.ran_l,
+                "Top: Rel": s.t_rel, "Top: Det": s.t_det, "Top: Len": s.t_len,
+                "Top: Par": s.t_par, "Top: Ord": s.t_ord, "Top: Coh": s.t_coh
             };
         });
 
-        const worksheet = XLSX.utils.json_to_sheet(dataRows);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Grading Results");
-        XLSX.writeFile(workbook, "Detailed_Student_Writing_Grades.xlsx");
-    }
-
-    function clearData() {
-        if(confirm("DANGER: This will delete ALL saved scores for ALL students. Are you sure?")) {
-            localStorage.removeItem(DB_KEY);
-            location.reload();
-        }
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "ClassGrades");
+        XLSX.writeFile(wb, "Chinese_Writing_Detailed_Scores.xlsx");
     }
 </script>
 </body>
