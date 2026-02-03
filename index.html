@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Grading Pro - Vertical Rubric</title>
+    <title>Chinese Writing Pro - Vertical Rubric</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f0f2f5; --selected: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
         
-        /* Sidebar - Narrowed */
-        #sidebar { width: 180px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
-        #sidebar h2 { padding: 15px; font-size: 0.9rem; margin: 0; background: #1a252f; border-bottom: 1px solid #34495e; text-align: center;}
+        /* Sidebar - Super Narrow */
+        #sidebar { width: 150px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
+        #sidebar h2 { padding: 15px; font-size: 0.8rem; margin: 0; background: #1a252f; border-bottom: 1px solid #34495e; text-align: center; letter-spacing: 1px;}
         .essay-list { overflow-y: auto; flex-grow: 1; }
-        .essay-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 13px; transition: 0.2s; display: flex; justify-content: space-between; }
+        .essay-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 12px; transition: 0.2s; display: flex; justify-content: space-between; }
         .essay-item:hover { background: #34495e; }
         .essay-item.active { background: var(--accent); font-weight: bold; }
         .essay-item.graded::after { content: "✅"; }
@@ -22,40 +22,38 @@
         #main { flex-grow: 1; display: flex; }
         #pdf-viewer { flex: 1; border: none; background: #525659; }
 
-        /* Compact Vertical Rubric Panel */
+        /* Vertical Rubric Panel */
         #rubric-panel { width: 320px; background: white; padding: 15px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.1); border-left: 1px solid #ddd; }
         
-        .timer-header { background: #34495e; color: white; padding: 8px; border-radius: 4px; text-align: center; margin-bottom: 10px; font-size: 0.9rem; }
-        #stopwatch { font-family: monospace; font-weight: bold; display: block; font-size: 1.2rem; }
+        .timer-header { background: #34495e; color: white; padding: 8px; border-radius: 4px; text-align: center; margin-bottom: 10px; font-size: 0.8rem; }
+        #stopwatch { font-family: monospace; font-weight: bold; display: block; font-size: 1.2rem; margin-top: 2px; }
 
-        .section { margin-bottom: 15px; border: 1px solid #e1e4e8; border-radius: 6px; }
+        .section { margin-bottom: 15px; border: 1px solid #e1e4e8; border-radius: 6px; overflow: hidden; }
         .section-title { background: #f1f3f5; padding: 6px 10px; font-size: 0.8rem; font-weight: bold; color: #2c3e50; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; }
         
-        .cat-group { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+        .cat-group { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; }
         .cat-group:last-child { border-bottom: none; }
-        .cat-label { font-size: 0.75rem; font-weight: bold; color: #555; margin-bottom: 5px; display: block; text-transform: uppercase; }
+        .cat-label { font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 6px; display: block; text-transform: uppercase; }
         
-        /* Compact Button Grid for Scores */
+        /* Grid Buttons: Band below Criteria */
         .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .score-grid.len-grid { grid-template-columns: repeat(3, 1fr); } /* For length 5,3,1 */
+        .score-grid.len-grid { grid-template-columns: repeat(3, 1fr); }
         
         .score-btn { 
-            background: #fff; border: 1px solid #ddd; padding: 6px 2px; font-size: 0.75rem; 
-            cursor: pointer; text-align: center; border-radius: 3px; transition: 0.2s; 
+            background: #fff; border: 1px solid #ddd; padding: 8px 2px; font-size: 0.75rem; 
+            cursor: pointer; text-align: center; border-radius: 4px; transition: 0.15s; color: #333;
         }
-        .score-btn:hover { background: #f8f9fa; }
-        .score-btn.selected { background: var(--selected); color: white; border-color: var(--selected); font-weight: bold; }
+        .score-btn:hover { background: #f8f9fa; border-color: #bbb; }
+        .score-btn.selected { background: var(--selected); color: white; border-color: var(--selected); font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* Format Requirements */
-        .format-list { padding: 8px; }
-        .format-item { display: flex; align-items: center; font-size: 0.75rem; margin-bottom: 4px; cursor: pointer; }
-        .format-item input { margin-right: 8px; }
+        /* Format Section */
+        .format-item { display: flex; align-items: center; font-size: 0.75rem; margin-bottom: 5px; cursor: pointer; color: #444; }
+        .format-item input { margin-right: 10px; transform: scale(1.1); }
 
-        /* Total Section */
-        .total-display { background: #fff5f5; border: 2px solid #e74c3c; border-radius: 6px; padding: 10px; margin: 15px 0; text-align: center; }
-        #total-val { font-size: 2rem; font-weight: bold; color: #e74c3c; display: block; }
+        .total-display { background: #fff5f5; border: 2px solid #e74c3c; border-radius: 6px; padding: 12px; margin: 15px 0; text-align: center; }
+        #total-val { font-size: 2.2rem; font-weight: bold; color: #e74c3c; display: block; }
         
-        .btn-save { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-save { width: 100%; padding: 14px; background: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         .btn-export { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 0.8rem; }
     </style>
 </head>
@@ -74,67 +72,22 @@
     
     <div id="rubric-panel">
         <div class="timer-header">
-            TIME: <span id="stopwatch">00:00</span>
+            MARKING TIME <span id="stopwatch">00:00</span>
         </div>
 
         <!-- 1. ACCURACY -->
         <div class="section">
             <div class="section-title">1. ACCURACY (30) <span id="sum-acc">0</span></div>
-            <div class="cat-group" data-id="acc_v">
-                <span class="cat-label">Vocabulary</span>
-                <div class="score-grid">
-                    <button class="score-btn" onclick="setScore('acc_v', 10)">10</button>
-                    <button class="score-btn" onclick="setScore('acc_v', 7)">7</button>
-                    <button class="score-btn" onclick="setScore('acc_v', 5)">5</button>
-                    <button class="score-btn" onclick="setScore('acc_v', 3)">3</button>
-                    <button class="score-btn" onclick="setScore('acc_v', 1)">1</button>
-                </div>
-            </div>
-            <div class="cat-group" data-id="acc_g">
-                <span class="cat-label">Grammar</span>
-                <div class="score-grid">
-                    <button class="score-btn" onclick="setScore('acc_g', 10)">10</button>
-                    <button class="score-btn" onclick="setScore('acc_g', 7)">7</button>
-                    <button class="score-btn" onclick="setScore('acc_g', 5)">5</button>
-                    <button class="score-btn" onclick="setScore('acc_g', 3)">3</button>
-                    <button class="score-btn" onclick="setScore('acc_g', 1)">1</button>
-                </div>
-            </div>
-            <div class="cat-group" data-id="acc_c">
-                <span class="cat-label">Characters</span>
-                <div class="score-grid">
-                    <button class="score-btn" onclick="setScore('acc_c', 10)">10</button>
-                    <button class="score-btn" onclick="setScore('acc_c', 7)">7</button>
-                    <button class="score-btn" onclick="setScore('acc_c', 5)">5</button>
-                    <button class="score-btn" onclick="setScore('acc_c', 3)">3</button>
-                    <button class="score-btn" onclick="setScore('acc_c', 1)">1</button>
-                </div>
-            </div>
+            <div class="cat-group" data-id="acc_v"><span class="cat-label">Vocabulary</span><div class="score-grid"><button class="score-btn" onclick="setScore('acc_v', 10)">10</button><button class="score-btn" onclick="setScore('acc_v', 7)">7</button><button class="score-btn" onclick="setScore('acc_v', 5)">5</button><button class="score-btn" onclick="setScore('acc_v', 3)">3</button><button class="score-btn" onclick="setScore('acc_v', 1)">1</button></div></div>
+            <div class="cat-group" data-id="acc_g"><span class="cat-label">Grammar</span><div class="score-grid"><button class="score-btn" onclick="setScore('acc_g', 10)">10</button><button class="score-btn" onclick="setScore('acc_g', 7)">7</button><button class="score-btn" onclick="setScore('acc_g', 5)">5</button><button class="score-btn" onclick="setScore('acc_g', 3)">3</button><button class="score-btn" onclick="setScore('acc_g', 1)">1</button></div></div>
+            <div class="cat-group" data-id="acc_c"><span class="cat-label">Characters</span><div class="score-grid"><button class="score-btn" onclick="setScore('acc_c', 10)">10</button><button class="score-btn" onclick="setScore('acc_c', 7)">7</button><button class="score-btn" onclick="setScore('acc_c', 5)">5</button><button class="score-btn" onclick="setScore('acc_c', 3)">3</button><button class="score-btn" onclick="setScore('acc_c', 1)">1</button></div></div>
         </div>
 
         <!-- 2. RANGE -->
         <div class="section">
             <div class="section-title">2. RANGE (30) <span id="sum-ran">0</span></div>
-            <div class="cat-group" data-id="ran_v">
-                <span class="cat-label">Vocab Range</span>
-                <div class="score-grid">
-                    <button class="score-btn" onclick="setScore('ran_v', 15)">15</button>
-                    <button class="score-btn" onclick="setScore('ran_v', 12)">12</button>
-                    <button class="score-btn" onclick="setScore('ran_v', 9)">9</button>
-                    <button class="score-btn" onclick="setScore('ran_v', 6)">6</button>
-                    <button class="score-btn" onclick="setScore('ran_v', 3)">3</button>
-                </div>
-            </div>
-            <div class="cat-group" data-id="ran_l">
-                <span class="cat-label">Lang Points</span>
-                <div class="score-grid">
-                    <button class="score-btn" onclick="setScore('ran_l', 15)">15</button>
-                    <button class="score-btn" onclick="setScore('ran_l', 12)">12</button>
-                    <button class="score-btn" onclick="setScore('ran_l', 9)">9</button>
-                    <button class="score-btn" onclick="setScore('ran_l', 6)">6</button>
-                    <button class="score-btn" onclick="setScore('ran_l', 3)">3</button>
-                </div>
-            </div>
+            <div class="cat-group" data-id="ran_v"><span class="cat-label">Vocab Range</span><div class="score-grid"><button class="score-btn" onclick="setScore('ran_v', 15)">15</button><button class="score-btn" onclick="setScore('ran_v', 12)">12</button><button class="score-btn" onclick="setScore('ran_v', 9)">9</button><button class="score-btn" onclick="setScore('ran_v', 6)">6</button><button class="score-btn" onclick="setScore('ran_v', 3)">3</button></div></div>
+            <div class="cat-group" data-id="ran_l"><span class="cat-label">Lang Points</span><div class="score-grid"><button class="score-btn" onclick="setScore('ran_l', 15)">15</button><button class="score-btn" onclick="setScore('ran_l', 12)">12</button><button class="score-btn" onclick="setScore('ran_l', 9)">9</button><button class="score-btn" onclick="setScore('ran_l', 6)">6</button><button class="score-btn" onclick="setScore('ran_l', 3)">3</button></div></div>
         </div>
 
         <!-- 3. TOPIC & ORG -->
@@ -146,7 +99,7 @@
         <!-- 4. FORMAT -->
         <div class="section">
             <div class="section-title">4. FORMAT (10) <span id="sum-fmt">0</span></div>
-            <div class="format-list">
+            <div style="padding: 10px;">
                 <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Title middle</label>
                 <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Indent</label>
                 <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> No blank lines</label>
@@ -156,46 +109,44 @@
         </div>
 
         <div class="total-display">
-            <span style="font-size:0.7rem; font-weight:bold; color:#7f8c8d">TOTAL SCORE</span>
+            <span style="font-size:0.7rem; font-weight:bold; color:#7f8c8d; letter-spacing: 1px;">FINAL TOTAL</span>
             <span id="total-val">0</span>
         </div>
         
-        <button class="btn-save" onclick="saveGrade()">Save Grade</button>
+        <button class="btn-save" onclick="saveGrade()">Save Grade & Timer</button>
     </div>
 </div>
 
 <script>
-    const GITHUB_PATH = "https://kkz2025.github.io/Chinesewriting/students%20essays/";
-    const DB_KEY = 'chineseGrades_Vertical_v1';
+    const GITHUB_BASE = "https://kkz2025.github.io/Chinesewriting/students%20essays/";
+    const DB_KEY = 'chineseGrades_Final_v2';
     let grades = JSON.parse(localStorage.getItem(DB_KEY)) || {};
     let activeId = null;
     let seconds = 0;
     let interval;
 
-    // Standard Scoring Setup
     let currentScores = {};
 
     const topicCats = [
         {id:'t_rel', label:'Relevance'}, {id:'t_det', label:'Detail'}, {id:'t_len', label:'Length', options:[5,3,1]},
-        {id:'t_par', label:'Paragraph'}, {id:'t_ord', label:'Order'}, {id:'t_coh', label:'Cohesion'}
+        {id:'t_par', label:'Paragraphing'}, {id:'t_ord', label:'Logical Order'}, {id:'t_coh', label:'Cohesive Devices'}
     ];
 
-    // Build Topic UI
+    // Build Topic UI (Stacking label on top)
     const topicArea = document.getElementById('topic-area');
     topicCats.forEach(cat => {
         let group = document.createElement('div');
         group.className = 'cat-group';
         group.dataset.id = cat.id;
-        let options = cat.options || [5,4,3,2,1];
-        let gridClass = cat.id === 't_len' ? 'score-grid len-grid' : 'score-grid';
+        let opts = cat.options || [5,4,3,2,1];
+        let gridStyle = cat.id === 't_len' ? 'score-grid len-grid' : 'score-grid';
         
-        group.innerHTML = `<span class="cat-label">${cat.label}</span><div class="${gridClass}">` +
-            options.map(v => `<button class="score-btn" onclick="setScore('${cat.id}', ${v})">${v}</button>`).join('') +
+        group.innerHTML = `<span class="cat-label">${cat.label}</span><div class="${gridStyle}">` +
+            opts.map(v => `<button class="score-btn" onclick="setScore('${cat.id}', ${v})">${v}</button>`).join('') +
             `</div>`;
         topicArea.appendChild(group);
     });
 
-    // Build Student List
     const list = document.getElementById('essayList');
     for(let i=1; i<=51; i++) {
         let div = document.createElement('div');
@@ -212,7 +163,6 @@
     }
 
     function updateUI() {
-        // Highlight logic
         document.querySelectorAll('.cat-group').forEach(group => {
             const id = group.dataset.id;
             const target = currentScores[id];
@@ -221,7 +171,6 @@
             });
         });
 
-        // Summation
         const acc = (currentScores.acc_v||0) + (currentScores.acc_g||0) + (currentScores.acc_c||0);
         const ran = (currentScores.ran_v||0) + (currentScores.ran_l||0);
         const top = (currentScores.t_rel||0) + (currentScores.t_det||0) + (currentScores.t_len||0) + (currentScores.t_par||0) + (currentScores.t_ord||0) + (currentScores.t_coh||0);
@@ -238,9 +187,8 @@
         activeId = id;
         document.querySelectorAll('.essay-item').forEach(e => e.classList.remove('active'));
         document.getElementById(`essay-${id}`).classList.add('active');
-        document.getElementById('pdf-viewer').src = `${GITHUB_PATH}${id}.pdf`;
+        document.getElementById('pdf-viewer').src = `${GITHUB_BASE}${id}.pdf`;
         
-        // Timer Reset
         clearInterval(interval);
         seconds = 0;
         interval = setInterval(() => {
@@ -257,7 +205,7 @@
             // Apply Requested Defaults
             currentScores = { 
                 acc_v: 5, acc_g: 5, acc_c: 5, 
-                ran_v: 6, ran_l: 6, 
+                ran_v: 9, ran_l: 9, 
                 t_rel: 3, t_det: 3, t_len: 5, t_par: 3, t_ord: 3, t_coh: 3 
             };
             document.querySelectorAll('.f-chk').forEach(c => c.checked = true);
@@ -275,11 +223,11 @@
         };
         localStorage.setItem(DB_KEY, JSON.stringify(grades));
         document.getElementById(`essay-${activeId}`).classList.add('graded');
-        alert("Saved Student #" + activeId);
+        alert("Student #" + activeId + " Saved.");
     }
 
     function exportExcel() {
-        if(Object.keys(grades).length === 0) return alert("No scores saved!");
+        if(Object.keys(grades).length === 0) return alert("No grades saved!");
         
         const dataRows = Object.keys(grades).sort((a,b)=>a-b).map(id => {
             const g = grades[id];
@@ -296,7 +244,7 @@
                 "Range TOTAL": ranT,
                 "Topic TOTAL": topT,
                 "Format TOTAL": fmtT,
-                "Time (Mins)": (g.time / 60).toFixed(2),
+                "Marking Time (Mins)": (g.time / 60).toFixed(2),
                 "Acc: Vocab": s.acc_v, "Acc: Gram": s.acc_g, "Acc: Char": s.acc_c,
                 "Ran: Vocab": s.ran_v, "Ran: Lang": s.ran_l,
                 "Top: Rel": s.t_rel, "Top: Det": s.t_det, "Top: Len": s.t_len,
@@ -307,7 +255,7 @@
         const ws = XLSX.utils.json_to_sheet(dataRows);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "ClassGrades");
-        XLSX.writeFile(wb, "Writing_Grades_Detailed.xlsx");
+        XLSX.writeFile(wb, "Detailed_Grades_Report.xlsx");
     }
 </script>
 </body>
