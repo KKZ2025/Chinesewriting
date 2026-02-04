@@ -3,62 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Writing Rubric - Full Descriptions</title>
+    <title>Chinese Writing Pro Dashboard</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f0f2f5; --selected: #3498db; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
         
-        /* Sidebar */
-        #sidebar { width: 140px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
-        #sidebar h2 { padding: 15px; font-size: 0.75rem; margin: 0; background: #1a252f; text-align: center; border-bottom: 1px solid #34495e; }
+        /* Sidebar - Narrow */
+        #sidebar { width: 130px; background: var(--primary); color: white; display: flex; flex-direction: column; border-right: 1px solid #ddd; }
+        #sidebar h2 { padding: 15px; font-size: 0.7rem; margin: 0; background: #1a252f; text-align: center; border-bottom: 1px solid #34495e; letter-spacing: 1px;}
         .essay-list { overflow-y: auto; flex-grow: 1; }
-        .essay-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 12px; transition: 0.2s; text-align: center;}
+        .essay-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #34495e; font-size: 11px; transition: 0.2s; text-align: center;}
         .essay-item:hover { background: #34495e; }
         .essay-item.active { background: var(--accent); font-weight: bold; }
         .essay-item.graded::after { content: " ✅"; }
 
-        /* Main Workspace */
+        /* Workspace */
         #main { flex-grow: 1; display: flex; }
         #pdf-viewer { flex: 1; border: none; background: #525659; }
 
-        /* Vertical Rubric Panel */
+        /* Vertical Rubric Panel - 350px */
         #rubric-panel { width: 350px; background: white; padding: 15px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.1); border-left: 1px solid #ddd; }
         
-        .timer-header { background: #34495e; color: white; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 15px; }
-        #stopwatch { font-family: monospace; font-weight: bold; font-size: 1.3rem; display: block; }
+        .timer-header { background: #34495e; color: white; padding: 8px; border-radius: 4px; text-align: center; margin-bottom: 15px; }
+        #stopwatch { font-family: monospace; font-weight: bold; font-size: 1.2rem; display: block; }
 
-        .section { margin-bottom: 20px; border: 1px solid #e1e4e8; border-radius: 6px; overflow: hidden; }
-        .section-title { background: #f1f3f5; padding: 8px 12px; font-size: 0.85rem; font-weight: bold; color: #2c3e50; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; }
+        .section { margin-bottom: 18px; border: 1px solid #e1e4e8; border-radius: 6px; overflow: hidden; }
+        .section-title { background: #f1f3f5; padding: 8px 12px; font-size: 0.8rem; font-weight: bold; color: #2c3e50; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; }
         
-        .cat-group { padding: 10px; border-bottom: 1px solid #f0f0f0; }
-        .cat-label { font-size: 0.8rem; font-weight: 700; color: #333; margin-bottom: 8px; display: block; border-bottom: 1px solid #eee; padding-bottom: 3px;}
+        .cat-group { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+        .cat-label { font-size: 0.75rem; font-weight: 700; color: #444; margin-bottom: 6px; display: block; text-transform: uppercase; }
         
         /* Description Card Style */
-        .band-stack { display: flex; flex-direction: column; gap: 5px; }
+        .band-stack { display: flex; flex-direction: column; gap: 4px; }
         .band-btn { 
-            background: #fff; border: 1px solid #ddd; padding: 8px; font-size: 0.75rem; 
-            cursor: pointer; text-align: left; border-radius: 4px; transition: 0.15s; display: flex; align-items: flex-start;
+            background: #fff; border: 1px solid #ddd; padding: 6px 8px; font-size: 0.72rem; 
+            cursor: pointer; text-align: left; border-radius: 3px; transition: 0.1s; display: flex; align-items: flex-start;
         }
-        .band-btn:hover { background: #f8f9fa; border-color: #bbb; }
-        .band-btn.selected { background: #e7f3ff; border-color: var(--accent); color: var(--accent); font-weight: 500; box-shadow: inset 0 0 0 1px var(--accent); }
-        .band-score { font-weight: bold; min-width: 25px; margin-right: 10px; border-right: 1px solid #ddd; padding-right: 5px; }
+        .band-btn:hover { background: #f8f9fa; }
+        .band-btn.selected { background: #e7f3ff; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+        .band-score { font-weight: bold; min-width: 22px; margin-right: 8px; border-right: 1px solid #ddd; }
 
         /* Format Requirements */
-        .format-item { display: flex; align-items: center; font-size: 0.8rem; margin-bottom: 6px; cursor: pointer; padding: 2px 0; }
-        .format-item input { margin-right: 10px; transform: scale(1.1); }
+        .format-item { display: flex; align-items: center; font-size: 0.75rem; margin-bottom: 5px; cursor: pointer; }
+        .format-item input { margin-right: 10px; }
 
-        .total-display { background: #fff5f5; border: 2px solid #e74c3c; border-radius: 6px; padding: 15px; margin: 15px 0; text-align: center; }
-        #total-val { font-size: 2.5rem; font-weight: bold; color: #e74c3c; display: block; }
+        .total-display { background: #fff5f5; border: 2px solid #e74c3c; border-radius: 6px; padding: 12px; margin: 15px 0; text-align: center; }
+        #total-val { font-size: 2.2rem; font-weight: bold; color: #e74c3c; display: block; }
         
-        .btn-save { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .btn-export { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 0.8rem; }
+        .btn-save { width: 100%; padding: 14px; background: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+        .btn-export { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 0.75rem; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>ESSAYS</h2>
+    <h2>STUDENTS</h2>
     <div class="essay-list" id="essayList"></div>
     <div style="padding: 10px;">
         <button class="btn-export" onclick="exportExcel()">Export Detailed Excel</button>
@@ -70,43 +70,40 @@
     
     <div id="rubric-panel">
         <div class="timer-header">
-            TIME SPENT <span id="stopwatch">00:00</span>
+            TIME <span id="stopwatch">00:00</span>
         </div>
 
         <!-- 1. ACCURACY -->
         <div class="section">
             <div class="section-title">1. ACCURACY (30) <span id="sum-acc">0</span></div>
-            
             <div class="cat-group" data-id="acc_v">
                 <span class="cat-label">Vocabulary Accuracy</span>
                 <div class="band-stack">
-                    <button class="band-btn" onclick="setScore('acc_v', 10)"><span class="band-score">10</span> 0–1 vocabulary errors</button>
-                    <button class="band-btn" onclick="setScore('acc_v', 7)"><span class="band-score">7</span> 2–3 vocabulary errors</button>
-                    <button class="band-btn" onclick="setScore('acc_v', 5)"><span class="band-score">5</span> 4–5 vocabulary errors</button>
-                    <button class="band-btn" onclick="setScore('acc_v', 3)"><span class="band-score">3</span> Frequent errors; meaning unclear</button>
-                    <button class="band-btn" onclick="setScore('acc_v', 1)"><span class="band-score">1</span> Widespread errors; meaning unclear</button>
+                    <button class="band-btn" onclick="setScore('acc_v', 10)"><span class="band-score">10</span> 0–1 errors</button>
+                    <button class="band-btn" onclick="setScore('acc_v', 7)"><span class="band-score">7</span> 2–3 errors</button>
+                    <button class="band-btn" onclick="setScore('acc_v', 5)"><span class="band-score">5</span> 4–5 errors</button>
+                    <button class="band-btn" onclick="setScore('acc_v', 3)"><span class="band-score">3</span> Frequent errors</button>
+                    <button class="band-btn" onclick="setScore('acc_v', 1)"><span class="band-score">1</span> Widespread errors</button>
                 </div>
             </div>
-
             <div class="cat-group" data-id="acc_g">
                 <span class="cat-label">Grammar Accuracy</span>
                 <div class="band-stack">
-                    <button class="band-btn" onclick="setScore('acc_g', 10)"><span class="band-score">10</span> 0–1 grammar errors</button>
-                    <button class="band-btn" onclick="setScore('acc_g', 7)"><span class="band-score">7</span> 2–3 grammar errors</button>
-                    <button class="band-btn" onclick="setScore('acc_g', 5)"><span class="band-score">5</span> 4–5 grammar errors</button>
-                    <button class="band-btn" onclick="setScore('acc_g', 3)"><span class="band-score">3</span> Frequent errors; clarity affected</button>
-                    <button class="band-btn" onclick="setScore('acc_g', 1)"><span class="band-score">1</span> Persistent major errors; meaning unclear</button>
+                    <button class="band-btn" onclick="setScore('acc_g', 10)"><span class="band-score">10</span> 0–1 errors</button>
+                    <button class="band-btn" onclick="setScore('acc_g', 7)"><span class="band-score">7</span> 2–3 errors</button>
+                    <button class="band-btn" onclick="setScore('acc_g', 5)"><span class="band-score">5</span> 4–5 errors</button>
+                    <button class="band-btn" onclick="setScore('acc_g', 3)"><span class="band-score">3</span> Frequent errors</button>
+                    <button class="band-btn" onclick="setScore('acc_g', 1)"><span class="band-score">1</span> Persistent errors</button>
                 </div>
             </div>
-
             <div class="cat-group" data-id="acc_c">
                 <span class="cat-label">Character Accuracy</span>
                 <div class="band-stack">
-                    <button class="band-btn" onclick="setScore('acc_c', 10)"><span class="band-score">10</span> 0–4 wrong characters/pinyin</button>
-                    <button class="band-btn" onclick="setScore('acc_c', 7)"><span class="band-score">7</span> 5–10 wrong characters/pinyin</button>
-                    <button class="band-btn" onclick="setScore('acc_c', 5)"><span class="band-score">5</span> 10–15 wrong characters/pinyin</button>
-                    <button class="band-btn" onclick="setScore('acc_c', 3)"><span class="band-score">3</span> Many errors; regular pinyin use</button>
-                    <button class="band-btn" onclick="setScore('acc_c', 1)"><span class="band-score">1</span> Very many errors; heavy pinyin use</button>
+                    <button class="band-btn" onclick="setScore('acc_c', 10)"><span class="band-score">10</span> 0–4 wrong</button>
+                    <button class="band-btn" onclick="setScore('acc_c', 7)"><span class="band-score">7</span> 5–10 wrong</button>
+                    <button class="band-btn" onclick="setScore('acc_c', 5)"><span class="band-score">5</span> 10–15 wrong</button>
+                    <button class="band-btn" onclick="setScore('acc_c', 3)"><span class="band-score">3</span> Many errors</button>
+                    <button class="band-btn" onclick="setScore('acc_c', 1)"><span class="band-score">1</span> Very many errors</button>
                 </div>
             </div>
         </div>
@@ -114,26 +111,24 @@
         <!-- 2. RANGE -->
         <div class="section">
             <div class="section-title">2. RANGE (30) <span id="sum-ran">0</span></div>
-            
             <div class="cat-group" data-id="ran_v">
                 <span class="cat-label">Vocabulary Range</span>
                 <div class="band-stack">
-                    <button class="band-btn" onclick="setScore('ran_v', 15)"><span class="band-score">15</span> Many newly learned + exceeding level</button>
-                    <button class="band-btn" onclick="setScore('ran_v', 12)"><span class="band-score">12</span> Many newly learned items used</button>
-                    <button class="band-btn" onclick="setScore('ran_v', 9)"><span class="band-score">9</span> Some newly learned this semester</button>
-                    <button class="band-btn" onclick="setScore('ran_v', 6)"><span class="band-score">6</span> Only a few newly learned; very simple</button>
-                    <button class="band-btn" onclick="setScore('ran_v', 3)"><span class="band-score">3</span> Vocabulary almost entirely basic</button>
+                    <button class="band-btn" onclick="setScore('ran_v', 15)"><span class="band-score">15</span> Many + Exceeding</button>
+                    <button class="band-btn" onclick="setScore('ran_v', 12)"><span class="band-score">12</span> Many newly learned</button>
+                    <button class="band-btn" onclick="setScore('ran_v', 9)"><span class="band-score">9</span> Some newly learned</button>
+                    <button class="band-btn" onclick="setScore('ran_v', 6)"><span class="band-score">6</span> Few; very simple</button>
+                    <button class="band-btn" onclick="setScore('ran_v', 3)"><span class="band-score">3</span> Entirely basic</button>
                 </div>
             </div>
-
             <div class="cat-group" data-id="ran_l">
-                <span class="cat-label">Language Point Range</span>
+                <span class="cat-label">Language Points</span>
                 <div class="band-stack">
-                    <button class="band-btn" onclick="setScore('ran_l', 15)"><span class="band-score">15</span> 7+ points, 1–2 beyond level</button>
-                    <button class="band-btn" onclick="setScore('ran_l', 12)"><span class="band-score">12</span> Correctly used 7+ points</button>
-                    <button class="band-btn" onclick="setScore('ran_l', 9)"><span class="band-score">9</span> Correctly used 5 points</button>
-                    <button class="band-btn" onclick="setScore('ran_l', 6)"><span class="band-score">6</span> Correctly used 3 points</button>
-                    <button class="band-btn" onclick="setScore('ran_l', 3)"><span class="band-score">3</span> Fewer than 3 points used</button>
+                    <button class="band-btn" onclick="setScore('ran_l', 15)"><span class="band-score">15</span> 7+ points; beyond level</button>
+                    <button class="band-btn" onclick="setScore('ran_l', 12)"><span class="band-score">12</span> 7+ language points</button>
+                    <button class="band-btn" onclick="setScore('ran_l', 9)"><span class="band-score">9</span> 5 language points</button>
+                    <button class="band-btn" onclick="setScore('ran_l', 6)"><span class="band-score">6</span> 3 language points</button>
+                    <button class="band-btn" onclick="setScore('ran_l', 3)"><span class="band-score">3</span> Fewer than 3 points</button>
                 </div>
             </div>
         </div>
@@ -148,8 +143,8 @@
         <div class="section">
             <div class="section-title">4. FORMAT (10) <span id="sum-fmt">0</span></div>
             <div style="padding: 10px;">
-                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Title in the middle (2)</label>
-                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Paragraph indentation (2)</label>
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Title in middle (2)</label>
+                <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Indentation (2)</label>
                 <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> No blank lines (2)</label>
                 <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Narrative format (2)</label>
                 <label class="format-item"><input type="checkbox" class="f-chk" checked onchange="updateUI()"> Punctuation marks (2)</label>
@@ -157,7 +152,6 @@
         </div>
 
         <div class="total-display">
-            <span style="font-size:0.7rem; font-weight:bold; color:#7f8c8d;">FINAL SCORE</span>
             <span id="total-val">0</span>
         </div>
         
@@ -166,8 +160,8 @@
 </div>
 
 <script>
-    const GITHUB_PDF_URL = "https://kkz2025.github.io/Chinesewriting/students%20essays/";
-    const DB_KEY = 'chineseGrades_Final_v3';
+    const PDF_PATH = "https://kkz2025.github.io/Chinesewriting/students%20essays/";
+    const DB_KEY = 'chineseGrades_Final_v4';
     let grades = JSON.parse(localStorage.getItem(DB_KEY)) || {};
     let activeId = null;
     let seconds = 0;
@@ -176,27 +170,20 @@
     let currentScores = {};
 
     const topicCats = [
-        {id:'t_rel', label:'Relevance', bands:[
-            {v:5, t:'Fully relevant to task'}, {v:4, t:'Mostly relevant'}, {v:3, t:'Generally relevant'}, {v:2, t:'Partly relevant'}, {v:1, t:'Limited relevance'}
-        ]},
-        {id:'t_det', label:'Detail', bands:[
-            {v:5, t:'Elaborated detail with depth'}, {v:4, t:'Sufficient detail'}, {v:3, t:'Some detail'}, {v:2, t:'Minimal detail'}, {v:1, t:'Details lacking'}
-        ]},
-        {id:'t_len', label:'Length', bands:[
-            {v:5, t:'More than 2 pages'}, {v:3, t:'More than 1 page'}, {v:1, t:'Less than 1 page'}
-        ]},
-        {id:'t_par', label:'Paragraphing', bands:[
-            {v:5, t:'Clear and balanced'}, {v:4, t:'Clear with minor imbalance'}, {v:3, t:'Present but uneven'}, {v:2, t:'Unclear or weak'}, {v:1, t:'Insufficient or absent'}
-        ]},
-        {id:'t_ord', label:'Logical Order', bands:[
-            {v:5, t:'Fully logical / Smooth flow'}, {v:4, t:'Mostly logical sequence'}, {v:3, t:'Generally logical / Lapses'}, {v:2, t:'Sometimes confusing'}, {v:1, t:'Illogical or disconnected'}
-        ]},
+        {id:'t_rel', label:'Relevance', bands:[{v:5, t:'Fully relevant'},{v:4, t:'Mostly relevant'},{v:3, t:'Generally relevant'},{v:2, t:'Partly relevant'},{v:1, t:'Limited relevance'}]},
+        {id:'t_det', label:'Detail', bands:[{v:5, t:'Elaborated with depth'},{v:4, t:'Sufficient detail'},{v:3, t:'Some detail'},{v:2, t:'Minimal detail'},{v:1, t:'Lacking'}]},
+        {id:'t_len', label:'Length', bands:[{v:5, t:'> 2 pages'},{v:3, t:'> 1 page'},{v:1, t:'< 1 page'}]},
+        {id:'t_par', label:'Paragraphing', bands:[{v:5, t:'Clear/Balanced'},{v:4, t:'Clear/Imbalance'},{v:3, t:'Present/Uneven'},{v:2, t:'Unclear/Weak'},{v:1, t:'Absent'}]},
+        {id:'t_ord', label:'Logical Order', bands:[{v:5, t:'Fully logical'},{v:4, t:'Mostly logical'},{v:3, t:'Generally/Lapses'},{v:2, t:'Confusing'},{v:1, t:'Illogical'}]},
         {id:'t_coh', label:'Cohesive Devices', bands:[
-            {v:5, t:'3+ used effectively'}, {v:4, t:'2 used appropriately'}, {v:3, t:'1 used appropriately'}, {v:2, t:'Minimal devices'}, {v:1, t:'Few or no devices'}
+            {v:5, t:'Wide range; effective support'},
+            {v:4, t:'Good range; general support'},
+            {v:3, t:'Some used appropriately'},
+            {v:2, t:'Very limited use'},
+            {v:1, t:'Few or none used'}
         ]}
     ];
 
-    // Build Topic UI
     const topicArea = document.getElementById('topic-area');
     topicCats.forEach(cat => {
         let group = document.createElement('div');
@@ -213,7 +200,7 @@
         let div = document.createElement('div');
         div.className = `essay-item ${grades[i] ? 'graded' : ''}`;
         div.id = `essay-${i}`;
-        div.innerText = `#${i}`;
+        div.innerText = i;
         div.onclick = () => loadEssay(i);
         list.appendChild(div);
     }
@@ -249,7 +236,7 @@
         activeId = id;
         document.querySelectorAll('.essay-item').forEach(e => e.classList.remove('active'));
         document.getElementById(`essay-${id}`).classList.add('active');
-        document.getElementById('pdf-viewer').src = `${GITHUB_PDF_URL}${id}.pdf`;
+        document.getElementById('pdf-viewer').src = `${PDF_PATH}${id}.pdf`;
         
         clearInterval(timer);
         seconds = 0;
@@ -264,7 +251,7 @@
             currentScores = {...grades[id].scores};
             document.querySelectorAll('.f-chk').forEach((c, idx) => c.checked = grades[id].format[idx]);
         } else {
-            // DEFAULTS
+            // APPLY DEFAULTS
             currentScores = { 
                 acc_v: 5, acc_g: 5, acc_c: 5, 
                 ran_v: 9, ran_l: 9, 
@@ -294,21 +281,22 @@
             const g = grades[id];
             const s = g.scores;
             return {
-                "ID": id, "TOTAL": g.total,
-                "Acc TOTAL": s.acc_v + s.acc_g + s.acc_c,
-                "Ran TOTAL": s.ran_v + s.ran_l,
-                "Top TOTAL": s.t_rel + s.t_det + s.t_len + s.t_par + s.t_ord + s.t_coh,
-                "Fmt TOTAL": g.format.filter(x=>x).length * 2,
+                "Student ID": id,
+                "FINAL SCORE": g.total,
+                "Accuracy Total": s.acc_v + s.acc_g + s.acc_c,
+                "Range Total": s.ran_v + s.ran_l,
+                "Topic Total": s.t_rel + s.t_det + s.t_len + s.t_par + s.t_ord + s.t_coh,
+                "Format Total": g.format.filter(x=>x).length * 2,
                 "Time (Mins)": (g.time / 60).toFixed(2),
-                "Acc:V": s.acc_v, "Acc:G": s.acc_g, "Acc:C": s.acc_c,
-                "Ran:V": s.ran_v, "Ran:L": s.ran_l,
+                "Acc:Vocab": s.acc_v, "Acc:Gram": s.acc_g, "Acc:Char": s.acc_c,
+                "Ran:Vocab": s.ran_v, "Ran:Lang": s.ran_l,
                 "Top:Rel": s.t_rel, "Top:Det": s.t_det, "Top:Len": s.t_len, "Top:Par": s.t_par, "Top:Ord": s.t_ord, "Top:Coh": s.t_coh
             };
         });
         const ws = XLSX.utils.json_to_sheet(dataRows);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Grades");
-        XLSX.writeFile(wb, "Chinese_Detailed_Grades.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "ClassGrades");
+        XLSX.writeFile(wb, "Class_Writing_Grades.xlsx");
     }
 </script>
 </body>
